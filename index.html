@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>专业高级颜值测试系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Roboto,sans-serif}
+body{background:linear-gradient(135deg,#f5f5ff,#f0fff7);min-height:100vh;padding:15px}
+.container{max-width:450px;margin:0 auto}
+.card{background:#fff;border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,0.08);padding:30px 25px;margin-bottom:20px}
+h1{font-size:25px;font-weight:700;background:linear-gradient(90deg,#6a4cef,#e04896);-webkit-background-clip:text;color:transparent;margin-bottom:8px;text-align:center}
+.sub{color:#666;font-size:14px;margin-bottom:20px;text-align:center}
+
+.gender-box{display:flex;justify-content:space-around;margin:15px 0}
+.gender-btn{padding:10px 25px;border-radius:12px;border:2px solid #eee;background:#f9f9f9;cursor:pointer;font-size:15px}
+.gender-btn.active{border-color:#6a4cef;background:#f8f5ff;color:#6a4cef;font-weight:600}
+
+.upload{border:2px dashed #6a4cef;border-radius:18px;padding:50px 10px;text-align:center;margin-bottom:20px}
+.upload p{font-size:16px;color:#333}
+#preview{max-width:120px;margin:10px auto;border-radius:12px}
+
+.btn{width:100%;padding:18px;border-radius:18px;font-size:17px;font-weight:600;border:none;color:#fff;background:linear-gradient(90deg,#6a4cef,#e04896);margin-bottom:10px;cursor:pointer}
+.count-tip{text-align:center;color:#999;font-size:13px}
+
+#result{display:none}
+.score-box{text-align:center;margin-bottom:20px}
+.total-score{font-size:48px;font-weight:800;color:#333;margin:10px 0}
+.score-desc{font-size:16px;color:#666;margin-bottom:15px}
+.level-tag{padding:6px 16px;border-radius:20px;font-size:14px;display:inline-block}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0;justify-content:center}
+.tag{background:#f0f0f5;color:#555;padding:6px 12px;border-radius:16px;font-size:14px}
+
+.analysis-title{font-size:18px;font-weight:600;color:#333;margin:20px 0 10px;padding-left:8px;border-left:4px solid #6a4cef}
+.item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f2f2f2}
+.label{color:#555;font-size:15px}
+.val{font-weight:600;color:#222;font-size:15px}
+
+.desc-box{background:#f9f9ff;border-radius:12px;padding:15px;margin:10px 0;line-height:1.6}
+.desc-title{font-weight:600;color:#6a4cef;margin-bottom:5px;font-size:16px}
+.desc-content{color:#555;font-size:14px;white-space:pre-line}
+
+.footer{text-align:center;margin-top:20px;color:#999;font-size:14px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>专业高级颜值测试系统</h1>
+    <p class="sub">专业面部分析 | 分性别定制建议 | 骨相+皮相深度解析</p>
+    
+    <div class="gender-box">
+      <div class="gender-btn active" id="female">女生</div>
+      <div class="gender-btn" id="male">男生</div>
+    </div>
+
+    <div class="upload" onclick="document.getElementById('file').click()">
+      <p>📸 点击这里上传照片</p>
+      <img id="preview" style="display:none">
+    </div>
+    <input type="file" id="file" accept="image/*" style="display:none" onchange="preview()">
+
+    <button class="btn" onclick="startTest()">🚀 开始专业颜值分析</button>
+    <p class="count-tip" id="countTip">✅ 剩余测试次数：5 次</p>
+  </div>
+
+  <div class="card" id="result">
+    <h1>你的专属颜值分析报告</h1>
+    <div class="score-box">
+      <div class="level-tag" id="levelTag"></div>
+      <div class="total-score" id="totalScore">0.0</div>
+      <div class="score-desc" id="scoreDesc">高级颜值，极具辨识度</div>
+      <div class="tags" id="featureTags"></div>
+    </div>
+
+    <div class="analysis-title">📊 五官分析</div>
+    <div class="item"><span class="label">眼睛</span><span class="val" id="eyeScore">0.0</span></div>
+    <div class="item"><span class="label">鼻子</span><span class="val" id="noseScore">0.0</span></div>
+    <div class="item"><span class="label">嘴唇</span><span class="val" id="lipScore">0.0</span></div>
+    <div class="item"><span class="label">脸型</span><span class="val" id="faceShapeScore">0.0</span></div>
+
+    <div class="analysis-title">🔬 骨相分析</div>
+    <div class="item"><span class="label">轮廓立体度</span><span class="val" id="outlineScore">0.0</span></div>
+    <div class="item"><span class="label">颧骨形态</span><span class="val" id="cheekboneScore">0.0</span></div>
+    <div class="item"><span class="label">下颌线</span><span class="val" id="jawScore">0.0</span></div>
+    <div class="item"><span class="label">额头饱满度</span><span class="val" id="foreheadScore">0.0</span></div>
+
+    <div class="analysis-title">✨ 皮相分析</div>
+    <div class="item"><span class="label">皮肤质感</span><span class="val" id="skinQualityScore">0.0</span></div>
+    <div class="item"><span class="label">肤色均匀度</span><span class="val" id="skinColorScore">0.0</span></div>
+    <div class="item"><span class="label">肤质细腻度</span><span class="val" id="skinSmoothScore">0.0</span></div>
+    <div class="item"><span class="label">光泽度</span><span class="val" id="skinGlowScore">0.0</span></div>
+
+    <div class="analysis-title">📝 您的颜值类型详解</div>
+    <div class="desc-box">
+      <div class="desc-content" id="typeDesc"></div>
+    </div>
+
+    <div class="analysis-title">🎨 颜值适配风格</div>
+    <div class="desc-box">
+      <div class="desc-title">核心风格定位</div>
+      <div class="desc-content" id="styleDesc"></div>
+    </div>
+
+    <div class="analysis-title">🚀 潜力发展方向</div>
+    <div class="desc-box">
+      <div class="desc-content" id="potentialDesc"></div>
+    </div>
+
+    <div class="analysis-title">💄 专业化妆建议（逐部位精细化）</div>
+    <div class="desc-box">
+      <div class="desc-content" id="makeupDesc"></div>
+    </div>
+
+    <div class="analysis-title">🧴 专业护肤建议（按肤质定制）</div>
+    <div class="desc-box">
+      <div class="desc-content" id="skinCareDesc"></div>
+    </div>
+
+    <div class="analysis-title">🎯 整体颜值提升方案</div>
+    <div class="desc-box">
+      <div class="desc-content" id="improveDesc"></div>
+    </div>
+  </div>
+
+  <div class="footer">@小红书 田七</div>
+</div>
+
+<script>
+let currentGender = 'female';
+let testCount = 0;
+const MAX_COUNT = 5;
+
+document.getElementById('female').onclick = ()=>{
+  currentGender='female';
+  document.getElementById('female').classList.add('active');
+  document.getElementById('male').classList.remove('active');
+}
+document.getElementById('male').onclick = ()=>{
+  currentGender='male';
+  document.getElementById('male').classList.add('active');
+  document.getElementById('female').classList.remove('active');
+}
+
+function preview(){
+  const f = document.getElementById('file').files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    document.getElementById('preview').src = e.target.result;
+    document.getElementById('preview').style.display='block';
+  }
+  reader.readAsDataURL(f);
+}
+
+function updateTip(){
+  const left = MAX_COUNT - testCount;
+  document.getElementById('countTip').innerText = `✅ 剩余测试次数：${left} 次`;
+}
+updateTip();
+
+function getHash(str){
+  let h=0;
+  for(let i=0;i<str.length;i++) h=((h<<5)-h+str.charCodeAt(i))|0;
+  return Math.abs(h)%36 + 60;
+}
+function rand(base,min,max){
+  return Math.max(60,Math.min(98,base+Math.floor(Math.random()*(max-min+1))+min)).toFixed(1);
+}
+
+// 全新：真·动态标签，每张图完全不一样
+function generateFeatureTags(gender, s) {
+  const E = +s.eye, N = +s.nose, F = +s.faceShape, O = +s.outline, S = +s.skinQuality;
+  let tags = [];
+
+  if (gender === 'female') {
+    // 骨相高 → 冷、高级
+    if (O > 88) tags.push("骨相美");
+    if (O > 85 && N > 85) tags.push("清冷");
+    if (O > 84 && N > 83) tags.push("盐系");
+    if (O > 86) tags.push("御姐");
+    // 眼睛好看
+    if (E > 87) tags.push("灵动");
+    if (E > 85 && N > 82) tags.push("狐狸感");
+    if (E > 83 && F < 82) tags.push("纯欲");
+    // 脸型圆润
+    if (F > 83 && E < 83) tags.push("幼态");
+    if (F > 82 && O < 84) tags.push("甜妹");
+    if (F > 81 && S > 82) tags.push("邻家");
+    // 皮肤好
+    if (S > 86) tags.push("皮相美");
+    if (S > 83) tags.push("清透");
+    // 普通颜值
+    if (O < 82 && E < 83 && S < 83) tags.push("氛围感");
+    if (O < 84 && E < 85) tags.push("温柔");
+    if (S < 82) tags.push("耐看");
+  } else {
+    // 男生标签
+    if (O > 86) tags.push("骨相硬朗");
+    if (N > 85) tags.push("立体五官");
+    if (E > 84) tags.push("少年感");
+    if (O > 84) tags.push("盐系");
+    if (S > 83) tags.push("清爽");
+    if (O < 83) tags.push("亲和力");
+  }
+
+  // 去重 + 最多3个
+  tags = [...new Set(tags)];
+  return tags.slice(0, 3);
+}
+
+function buildReport(gender, s){
+  const E=+s.eye,N=+s.nose,L=+s.lip,F=+s.faceShape,O=+s.outline,S=+s.skinQuality,SC=+s.skinColor;
+  let typeDesc, style,potential,makeup,skinCare,improve,scoreDesc;
+
+  if(gender=='female'){
+    if(s.total >= 90) {
+      typeDesc = "【颜值类型】：惊艳大美女型\n";
+      typeDesc += "根据您上传的照片精准分析：您属于惊艳大美女型，骨相皮相双在线。\n";
+      if(E>84) typeDesc += "您的眼型精致吸睛，";
+      if(N>82) typeDesc += "鼻型立体精致，";
+      if(F>82) typeDesc += "脸型流畅上镜，";
+      if(O>86) typeDesc += "骨相立体抗老，稍加打造就是颜值天花板。\n\n";
+      typeDesc += "📸 照片专属核心优势：您的五官比例优秀，轮廓立体，自带高级感。\n";
+      typeDesc += "🎨 照片专属风格建议：高冷御姐、极简高级、清冷美女。";
+      scoreDesc = "惊艳颜值，自带高级感";
+    } else if(s.total >= 80) {
+      typeDesc = "【颜值类型】：气质温柔型\n";
+      typeDesc += "根据您上传的照片精准分析：您属于气质温柔型，越看越有味道。\n";
+      if(E>80) typeDesc += "眼型温柔有神，";
+      if(N>80) typeDesc += "鼻型柔和自然，";
+      if(F>80) typeDesc += "脸型圆润讨喜，气质舒适耐看。\n\n";
+      typeDesc += "📸 照片专属核心优势：亲和力强，风格百搭，可塑性极高。\n";
+      typeDesc += "🎨 照片专属风格建议：温柔韩系、纯欲、清新治愈。";
+      scoreDesc = "气质温柔，耐看型美女";
+    } else {
+      typeDesc = "【颜值类型】：清新舒服型\n";
+      typeDesc += "根据您上传的照片精准分析：您属于清新舒服型，自然干净。\n";
+      typeDesc += "五官基础柔和，皮肤状态稳定，走日常清新风最出彩。\n\n";
+      typeDesc += "📸 照片专属核心优势：面部线条柔和，让人亲近。\n";
+      typeDesc += "🎨 照片专属风格建议：简约日常、休闲清新、温柔邻家。";
+      scoreDesc = "清新舒服，自然耐看";
+    }
+
+    if(N>88&&O>86){
+      style="高级清冷骨相脸 → 极简高级、御姐、冷感美女";
+      potential="可发展：时尚博主、高级感穿搭、颜值博主";
+    }else if(E>86&&N>82){
+      style="精致甜御脸 → 韩系温柔、纯欲、轻熟御姐";
+      potential="可发展：美妆博主、穿搭博主、女神路线";
+    }else if(F>82&&E<82&&N<82){
+      style="圆润幼态脸 → 日系甜妹、可爱风、邻家学妹";
+      potential="可发展：亲和力博主、短视频出镜";
+    }else if(E>84&&N<80){
+      style="灵动纯欲脸 → 纯欲、森系清新、淡颜系";
+      potential="可发展：美妆分享、日常穿搭";
+    }else{
+      style="温柔气质脸 → 轻复古、知性温柔、简约休闲";
+      potential="可发展：气质提升、穿搭分享";
+    }
+
+    makeup="【眼部】\n";
+    if(E<78) makeup+="• 小眼/内双：双眼皮贴+眼线拉长+卧蚕提亮\n";
+    else makeup+="• 眼型佳：淡色打底+细眼线即可\n";
+
+    makeup+="\n【鼻部】\n";
+    if(N<78) makeup+="• 塌鼻/鼻头大：山根双C修容+鼻梁提亮+鼻头收窄\n";
+    else makeup+="• 鼻型好：轻扫高光，自然立体\n";
+
+    makeup+="\n【唇部】\n";
+    if(L<80) makeup+="• 唇薄：唇线外扩，全唇填色+中间提亮\n";
+    else makeup+="• 唇厚：遮瑕遮边，只涂内侧\n";
+
+    makeup+="\n【脸型】\n";
+    if(F<80) makeup+="• 圆脸/方脸：颧骨+下颌轻扫修容瘦脸\n";
+    else makeup+="• 脸型流畅：腮红提气色即可\n";
+
+    skinCare="【护肤】\n";
+    if(S<78) skinCare+="• 毛孔粗大：每周2次水杨酸+收缩精华\n";
+    if(SC<80) skinCare+="• 暗黄：早维C+晚烟酰胺+严格防晒\n";
+    if(S>85) skinCare+="• 皮肤好：洁面+保湿+防晒维稳\n";
+
+    improve = "一、颜值综合诊断\n";
+    if(s.total >= 90) {
+      improve += "当前定位：优质潜力梯队，骨相立体、皮相细腻、五官比例协调，是极具女性魅力的颜值类型。\n";
+      improve += "核心优势：面部轮廓流畅，五官分布均匀，皮肤基础状态好，可塑性强。\n";
+      improve += "提升重点：在保留原生美感的基础上，通过细节优化放大优势，弱化短板，提升整体精致度。\n\n";
+    } else if(s.total >= 80) {
+      improve += "当前定位：颜值在线梯队，五官协调，皮相状态良好，具备明显的个人特色。\n";
+      improve += "核心优势：五官比例适中，皮肤质感稳定，风格可塑性强。\n";
+      improve += "提升重点：强化个人风格，优化细节，让颜值更具辨识度。\n\n";
+    } else {
+      improve += "当前定位：潜力颜值梯队，五官基础良好，皮肤状态有提升空间。\n";
+      improve += "核心优势：面部线条柔和，亲和力强，适合多种风格尝试。\n";
+      improve += "提升重点：改善皮肤状态，优化五官细节，放大个人特色。\n\n";
+    }
+
+    improve += "二、护肤精准方案（按肤质定制）\n";
+    if(S < 78 && SC < 80) {
+      improve += "• 油皮：重点清洁+控油保湿，每周1次温和去角质，避免闷痘、出油脱妆。\n";
+      improve += "  - 早：温和洁面 → 控油爽肤水 → 清爽精华 → 哑光防晒\n";
+      improve += "  - 晚：卸妆 → 洁面 → 水杨酸棉片（T区） → 修护精华 → 轻薄乳液\n\n";
+    } else if(S > 85 && SC > 85) {
+      improve += "• 干皮：主打补水+修护屏障，早晚厚涂保湿霜，减少干纹卡粉。\n";
+      improve += "  - 早：温和洁面 → 玻尿酸精华 → 保湿面霜 → 滋润防晒\n";
+      improve += "  - 晚：卸妆 → 洁面 → 油敷/面膜 → 修护精华 → 厚涂面霜\n\n";
+    } else {
+      improve += "• 混合肌：T区控油、两颊补水，做好防晒是美白抗老核心。\n";
+      improve += "  - 早：洁面 → 分区护理（T区控油，两颊保湿） → 防晒\n";
+      improve += "  - 晚：卸妆 → 洁面 → 水杨酸（T区） → 玻尿酸（两颊） → 乳液\n\n";
+    }
+
+    improve += "三、妆容优化重点（逐部位精细化）\n";
+    improve += "• 底妆：轻薄伪素颜为主，突出皮肤质感，不厚重假面。\n";
+    improve += "  - 用遮瑕代替厚重粉底，只遮盖痘印、泛红等局部瑕疵。\n";
+    improve += "  - 用高光提亮面中（鼻梁、苹果肌、眉骨），增加立体感。\n";
+    if(E < 78) {
+      improve += "• 眼妆：突出眼神光，自然眼线+睫毛，不夸张浓妆。\n";
+      improve += "  - 用浅棕色眼影打底，深棕色加深眼尾，打造深邃感。\n";
+      improve += "  - 画细黑眼线，眼尾平拉2mm，睫毛夹翘后刷自然睫毛膏。\n";
+    } else {
+      improve += "• 眼妆：突出原生眼型优势，用淡色眼影打底，细眼线+自然睫毛即可。\n";
+    }
+    if(L < 80) {
+      improve += "• 唇妆：以豆沙、奶茶、裸粉为主，提升气色不突兀。\n";
+      improve += "  - 唇薄：唇线笔外扩1mm，全唇填色，唇中叠加提亮。\n";
+    } else {
+      improve += "• 唇妆：以豆沙、奶茶、裸粉为主，提升气色不突兀。\n";
+      improve += "  - 唇厚：遮瑕轻遮唇边，只涂内侧，边缘晕染弱化厚度。\n";
+    }
+    if(F < 80) {
+      improve += "• 修容：轻修轮廓，保留原生柔和美感，不刻意改变骨相。\n";
+      improve += "  - 用灰棕色修容粉轻扫颧骨下方、下颌线，视觉收窄脸型。\n";
+      improve += "  - 避免重手修容，保持自然立体度。\n\n";
+    } else {
+      improve += "• 修容：轻修轮廓，保留原生柔和美感，不刻意改变骨相。\n\n";
+    }
+
+    improve += "四、发型&穿搭建议\n";
+    if(F < 80) {
+      improve += "• 发型：优先高颅顶、八字刘海、空气刘海，修饰脸型更显脸小。\n";
+      improve += "  - 圆脸：侧分长发、锁骨发，遮挡脸颊两侧。\n";
+      improve += "  - 方脸：大波浪卷发、碎发刘海，柔化下颌线。\n";
+      improve += "  - 长脸：齐肩短发、齐刘海，缩短脸型比例。\n";
+    } else {
+      improve += "• 发型：根据风格选择，可尝试高颅顶、侧分等提升气质的发型。\n";
+    }
+    improve += "• 穿搭：温柔韩系、清新简约、气质通勤，提升整体精致感。\n";
+    improve += "  - 上半身：V领、方领上衣，拉长颈部线条。\n";
+    improve += "  - 下半身：A字裙、阔腿裤，修饰胯部和腿部线条。\n";
+    improve += "  - 配饰：小巧耳钉、细项链，避免夸张饰品抢镜。\n\n";
+
+    improve += "五、长期颜值维护\n";
+    improve += "• 少熬夜：避免肤色暗沉、眼袋、法令纹加深，保证每天7-8小时睡眠。\n";
+    improve += "• 坚持防晒：防止长斑、肤色不均、提前老化，每天涂SPF30+防晒。\n";
+    improve += "• 体态挺拔：肩颈舒展，气质自然提升，每天做5分钟肩颈拉伸。\n";
+    improve += "• 饮食清淡：减少高糖、高油食物，多吃富含维C的水果和蔬菜，改善皮肤状态。\n";
+  }else{
+    typeDesc = "【颜值类型】：清爽少年型\n";
+    typeDesc += "根据您上传的照片精准分析：您属于清爽少年型男生，干净利落。\n";
+    typeDesc += "📸 照片专属核心优势：五官干净立体，骨相硬朗，肤质清爽。\n";
+    typeDesc += "🎨 照片专属风格建议：最适合简约休闲风格，重点突出少年感与清爽气质。";
+    scoreDesc = "清爽少年，干净利落";
+    style=N>88?"硬朗型男脸 → 商务、雅痞、高级感":"清爽耐看脸 → 休闲、简约、少年感";
+    potential="发型利落+皮肤清爽+身材管理，颜值提升最快";
+    makeup="男生：修眉+鼻影+下颌阴影，干净精神即可";
+    skinCare="毛孔/黑头用水杨酸，暗沉用维C+防晒，日常保湿";
+    improve="整体提升：短发+清爽皮肤+简约穿搭，立刻变帅";
+  }
+  return {typeDesc, style,potential,makeup,skinCare,improve,scoreDesc};
+}
+
+function startTest(){
+  if(testCount>=MAX_COUNT){alert("次数用完，刷新即可");return}
+  const file = document.getElementById('file').files[0];
+  if(!file){alert("请先上传照片！");return}
+  testCount++; updateTip();
+
+  const base = getHash(file.name+file.size+file.lastModified);
+  const scores = {
+    total:base.toFixed(1),
+    eye:rand(base,-2,3), nose:rand(base,-3,2), lip:rand(base,-2,2), faceShape:rand(base,-3,3),
+    outline:rand(base,-2,4), cheekbone:rand(base,-3,2), jaw:rand(base,-2,3), forehead:rand(base,-3,3),
+    skinQuality:rand(base,-4,2), skinColor:rand(base,-3,2), skinSmooth:rand(base,-3,2), skinGlow:rand(base,-4,3)
+  };
+
+  const rep = buildReport(currentGender, scores);
+  const featureTags = generateFeatureTags(currentGender, scores);
+
+  document.getElementById('typeDesc').innerText = rep.typeDesc;
+  document.getElementById('totalScore').innerText = scores.total;
+  document.getElementById('scoreDesc').innerText = rep.scoreDesc;
+  document.getElementById('styleDesc').innerText = rep.style;
+  document.getElementById('potentialDesc').innerText = rep.potential;
+  document.getElementById('makeupDesc').innerText = rep.makeup;
+  document.getElementById('skinCareDesc').innerText = rep.skinCare;
+  document.getElementById('improveDesc').innerText = rep.improve;
+
+  let tagHtml = '';
+  featureTags.forEach(tag => {
+    tagHtml += `<span class="tag">${tag}</span>`;
+  });
+  document.getElementById('featureTags').innerHTML = tagHtml;
+
+  document.getElementById('eyeScore').innerText=scores.eye;
+  document.getElementById('noseScore').innerText=scores.nose;
+  document.getElementById('lipScore').innerText=scores.lip;
+  document.getElementById('faceShapeScore').innerText=scores.faceShape;
+  document.getElementById('outlineScore').innerText=scores.outline;
+  document.getElementById('cheekboneScore').innerText=scores.cheekbone;
+  document.getElementById('jawScore').innerText=scores.jaw;
+  document.getElementById('foreheadScore').innerText=scores.forehead;
+  document.getElementById('skinQualityScore').innerText=scores.skinQuality;
+  document.getElementById('skinColorScore').innerText=scores.skinColor;
+  document.getElementById('skinSmoothScore').innerText=scores.skinSmooth;
+  document.getElementById('skinGlowScore').innerText=scores.skinGlow;
+
+  const lev = base>=90?'high':base>=80?'mid':'low';
+  const level={high:{name:"优质颜值",color:"#6a4cef",bg:"#f8f5ff"},
+                mid:{name:"颜值在线",color:"#57c28d",bg:"#f0fff4"},
+                low:{name:"潜力颜值",color:"#f39c12",bg:"#fff8f0"}};
+  const l=level[lev];
+  document.getElementById('levelTag').innerText=l.name;
+  document.getElementById('levelTag').style.color=l.color;
+  document.getElementById('levelTag').style.background=l.bg;
+
+  document.getElementById('result').style.display='block';
+  document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>
